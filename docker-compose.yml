@@ -2,37 +2,75 @@ version: '3.2'
 
 services:
 
-  frontend:
-    build: frontend
-    ports:
-      - 20080:80
+  frontend-php:
+    build:
+      context: ./docker/frontend-php
     volumes:
-      # Re-use local composer cache via host-volume
-      - ~/.composer-docker/cache:/root/.composer/cache:delegated
-      # Mount source-code for development
-      - ./:/app
+      - type: bind
+        source: ./
+        target: /app
+    environment:
+      XDEBUG_CONFIG: "remote_host=172.17.0.1 remote_enable=1"
+      PHP_IDE_CONFIG: "serverName=BasicDocker"
 
-  backend:
-    build: backend
-    ports:
-      - 21080:80
+  frontend-nginx:
+    image: nginx
     volumes:
-      # Re-use local composer cache via host-volume
-      - ~/.composer-docker/cache:/root/.composer/cache:delegated
-      # Mount source-code for development
-      - ./:/app
+      -   type: bind
+          source: ./
+          target: /app
+      -   type: bind
+          source: ./docker/frontend-nginx/app.conf
+          target: /etc/nginx/conf.d/app.conf
+    depends_on:
+      - frontend-php
+    ports:
+      - 8080:80
 
-  mysql:
+  backend-php:
+    build:
+      context: ./docker/backend-php
+    volumes:
+      -   type: bind
+          source: ./
+          target: /app
+    environment:
+      XDEBUG_CONFIG: "remote_host=172.17.0.1 remote_enable=1"
+      PHP_IDE_CONFIG: "serverName=BasicDocker"
+
+  backend-nginx:
+    image: nginx
+    volumes:
+      -   type: bind
+          source: ./
+          target: /app
+      -   type: bind
+          source: ./docker/backend-nginx/app.conf
+          target: /etc/nginx/conf.d/app.conf
+    depends_on:
+      - backend-php
+    ports:
+      - 8081:80
+
+  app-mysql:
     image: mysql:5.7
     environment:
-      - MYSQL_ROOT_PASSWORD=verysecret
-      - MYSQL_DATABASE=yii2advanced
-      - MYSQL_USER=yii2advanced
-      - MYSQL_PASSWORD=secret
+      MYSQL_ROOT_PASSWORD: verysecret
+      MYSQL_DATABASE: basic
+      MYSQL_USER: basic
+      MYSQL_PASSWORD: password
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      -   type: volume
+          source: db_basic_data
+          target: /var/lib/mysql
 
-  #pgsql:
-  #  image: postgres:9.5
-  #  environment:
-  #    - POSTGRES_DB=yii2advanced
-  #    - POSTGRES_USER=yii2advanced
-  #    - POSTGRES_PASSWORD=secret
+  memcached:
+    image: memcached
+    ports:
+      - 11211:11211
+
+volumes:
+  db_basic_data:
