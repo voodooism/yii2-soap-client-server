@@ -1,4 +1,8 @@
 <?php
+
+use yii\caching\MemCache;
+use backend\components\SoapFormatter;
+
 $params = array_merge(
     require __DIR__ . '/../../common/config/params.php',
     require __DIR__ . '/../../common/config/params-local.php',
@@ -13,6 +17,21 @@ return [
     'bootstrap' => ['log'],
     'modules' => [],
     'components' => [
+        'response' => [
+            'formatters' => [
+                'soap' => SoapFormatter::class,
+            ],
+        ],
+        'cache' => [
+            'class' => MemCache::class,
+            'useMemcached' => true,
+            'servers' => [
+                [
+                    'host' => 'memcached',
+                    'port' => 11211,
+                ],
+            ]
+        ],
         'request' => [
             'csrfParam' => '_csrf-backend',
         ],
@@ -37,14 +56,12 @@ return [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
             ],
         ],
-        */
     ],
     'params' => $params,
 ];
