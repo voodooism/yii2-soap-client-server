@@ -1,34 +1,42 @@
 <?php
 namespace frontend\controllers;
 
-use frontend\models\ResendVerificationEmailForm;
-use frontend\models\VerifyEmailForm;
 use Yii;
-use yii\base\InvalidArgumentException;
-use yii\web\BadRequestHttpException;
+use yii\web\Response;
 use yii\web\Controller;
+use yii\web\ErrorAction;
 use yii\filters\VerbFilter;
-use yii\filters\AccessControl;
 use common\models\LoginForm;
-use frontend\models\PasswordResetRequestForm;
-use frontend\models\ResetPasswordForm;
+use yii\filters\AccessControl;
 use frontend\models\SignupForm;
-use frontend\models\ContactForm;
+use yii\web\BadRequestHttpException;
+use frontend\models\VerifyEmailForm;
+use frontend\models\ResetPasswordForm;
+use yii\base\InvalidArgumentException;
+use frontend\models\soap\request\Calculate;
+use frontend\models\PasswordResetRequestForm;
+use frontend\components\SoapCalculatorService;
+use frontend\models\ResendVerificationEmailForm;
 
 /**
  * Site controller
  */
 class SiteController extends Controller
 {
-    /**
-     * {@inheritdoc}
-     */
+    private $soapCalculator;
+
+    public function __construct($id, $module, SoapCalculatorService $soapCalculator, $config = [])
+    {
+        parent::__construct($id, $module, $config);
+        $this->soapCalculator = $soapCalculator;
+    }
+
     public function behaviors()
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['logout', 'signup'],
+                'class' => AccessControl::class,
+                'only' => ['logout', 'signup', 'index'],
                 'rules' => [
                     [
                         'actions' => ['signup'],
@@ -36,7 +44,7 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['logout', 'index'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -58,7 +66,7 @@ class SiteController extends Controller
     {
         return [
             'error' => [
-                'class' => 'yii\web\ErrorAction',
+                'class' => ErrorAction::class,
             ],
             'captcha' => [
                 'class' => 'yii\captcha\CaptchaAction',
@@ -74,7 +82,23 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $model = new Calculate();
+        $request = Yii::$app->request;
+        $response = Yii::$app->response;
+        if ($request->isAjax && $model->load($request->post()) && $model->validate()) {
+            try {
+                $response->format = Response::FORMAT_JSON;
+                $response = $this->soapCalculator->send($model);
+                return ['price' => $response->price, 'info' => $response->info];
+            } catch (\SoapFault $exception) {
+                return ['soapError' => $exception->getMessage()];
+            } catch (\Throwable $exception) {
+                Yii::$app->errorHandler->logException($exception);
+                $response->setStatusCode(500);
+                return 'Something had gonna wrong, but we have already sent droids to fix it :)';
+            }
+        }
+        return $this->render('index', ['calculateModel' => $model]);
     }
 
     /**
@@ -110,39 +134,6 @@ class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
-    }
-
-    /**
-     * Displays contact page.
-     *
-     * @return mixed
-     */
-    public function actionContact()
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            if ($model->sendEmail(Yii::$app->params['adminEmail'])) {
-                Yii::$app->session->setFlash('success', 'Thank you for contacting us. We will respond to you as soon as possible.');
-            } else {
-                Yii::$app->session->setFlash('error', 'There was an error sending your message.');
-            }
-
-            return $this->refresh();
-        } else {
-            return $this->render('contact', [
-                'model' => $model,
-            ]);
-        }
-    }
-
-    /**
-     * Displays about page.
-     *
-     * @return mixed
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
     }
 
     /**

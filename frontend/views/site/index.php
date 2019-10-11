@@ -1,53 +1,74 @@
 <?php
 
 /* @var $this yii\web\View */
+/* @var \frontend\models\soap\request\Calculate $calculateModel*/
+/* @var int $price */
 
-$this->title = 'My Yii Application';
+use yii\bootstrap\Html;
+use kartik\date\DatePicker;
+use yii\bootstrap\ActiveForm;
+use frontend\assets\CalculatorAsset;
+
+CalculatorAsset::register($this);
+$this->title = 'Calculator';
 ?>
 <div class="site-index">
-
-    <div class="jumbotron">
-        <h1>Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
-
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
-    </div>
-
-    <div class="body-content">
-
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
+    <?php $activeForm = ActiveForm::begin([
+            'options' => [
+                'class' => 'js-calculator-form'
+            ],
+    ]); ?>
+      <div class="row">
+        <div class="col-md-6">
+            <?= $activeForm->field($calculateModel, 'city')->textInput()?>
         </div>
-
+        <div class="col-md-6">
+            <?= $activeForm->field($calculateModel, 'name')->textInput()?>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+            <?= $activeForm->field($calculateModel, 'date')
+                ->widget(DatePicker::class, [
+                    'options' => [
+                        'placeholder' => 'Select date...',
+                        'autocomplete' => 'off'
+                    ],
+                    'pluginOptions' => [
+                        'autoclose'=>true,
+                        'format' => 'yyyy-mm-dd'
+                    ]
+                ]); ?>
+        </div>
+        <div class="col-md-6">
+            <?= $activeForm->field($calculateModel, 'customParam1')->textInput()?>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+            <?= $activeForm->field($calculateModel, 'customParam2')->textInput()?>
+        </div>
+        <div class="col-md-6">
+            <?= $activeForm->field($calculateModel, 'customParam3')->textInput()?>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="btn-group">
+            <?=Html::submitButton('Рассчитать', ['class' => 'btn btn-primary']) ?>
+        </div>
+      </div>
+    <?php ActiveForm::end(); ?>
+    <div class="alert alert-danger alert-dismissible soap-error-alert" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <p><strong>Произошла ошибка: </strong><span class="js-error-message"></span></p>
+    </div>
+    <div class="alert alert-success alert-dismissible soap-message-alert" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <p><strong>Стоимость: </strong><span class="js-price"></span></p>
+      <p><strong>Информационное сообщение: </strong><span class="js-info-message"></span></p>
     </div>
 </div>
