@@ -2,59 +2,47 @@
     <a href="https://github.com/yiisoft" target="_blank">
         <img src="https://avatars0.githubusercontent.com/u/993323" height="100px">
     </a>
-    <h1 align="center">Yii 2 Advanced Project Template</h1>
+    <h1 align="center">Yii 2 SOAP Client-Server Calculator</h1>
     <br>
 </p>
 
-Yii 2 Advanced Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
-developing complex Web applications with multiple tiers.
+##Описание   
+####Backend:
+SOAP-сервер с одной функцией Calculate принимающей на вход следующие параметры:
+- city – текст  
+- name – текст  
+- date – дата в формате yyyy-mm-dd  
+- customParam1 - текст
+- customParam2 - текст
+- customParam3 - текст
 
-The template includes three tiers: front end, back end, and console, each of which
-is a separate Yii application.
+Результат вызова функции возвращает параметры:
+- price – стоимость (генерируется случайное число)
+- info – информационное сообщение
 
-The template is designed to work in a team development environment. It supports
-deploying the application in different environments.
+В случае если параметр date в запросе меньше текущего дня, выбрасывает SoapFault исключение.  
+Реализована basic аутентификация.   
 
-Documentation is at [docs/guide/README.md](docs/guide/README.md).
+####Front-end
+Тестовые данные для входа:  
+**User:** *user*  
+**Password:** *password*  
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/yiisoft/yii2-app-advanced.svg)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![Total Downloads](https://img.shields.io/packagist/dt/yiisoft/yii2-app-advanced.svg)](https://packagist.org/packages/yiisoft/yii2-app-advanced)
-[![Build Status](https://travis-ci.org/yiisoft/yii2-app-advanced.svg?branch=master)](https://travis-ci.org/yiisoft/yii2-app-advanced)
+#####Страница калькулятор.  
+Форма принимает параметры и вызывает у SoapServer'a метод *calculate* используя введенные пользователем параметры в качестве аргумента.  
+При нажатии на кнопку *"Рассчитать"* отправляется асинхронный запрос к серверу.  
+Результат запроса отображается под формой.  
 
-DIRECTORY STRUCTURE
--------------------
+##Разворачивание проекта:  
+1. **docker-compose up**  
+2. **php init**  
+  *(development environment)*
+3. php yii migrate
 
-```
-common
-    config/              contains shared configurations
-    mail/                contains view files for e-mails
-    models/              contains model classes used in both backend and frontend
-    tests/               contains tests for common classes    
-console
-    config/              contains console configurations
-    controllers/         contains console controllers (commands)
-    migrations/          contains database migrations
-    models/              contains console-specific model classes
-    runtime/             contains files generated during runtime
-backend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains backend configurations
-    controllers/         contains Web controller classes
-    models/              contains backend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for backend application    
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-frontend
-    assets/              contains application assets such as JavaScript and CSS
-    config/              contains frontend configurations
-    controllers/         contains Web controller classes
-    models/              contains frontend-specific model classes
-    runtime/             contains files generated during runtime
-    tests/               contains tests for frontend application
-    views/               contains view files for the Web application
-    web/                 contains the entry script and Web resources
-    widgets/             contains frontend widgets
-vendor/                  contains dependent 3rd-party packages
-environments/            contains environment-based overrides
-```
+С хостовой машины проект будет доступен по следующим адресам:  
+**Backend:** http://soap-server.devel:8081  
+**Frontend:** http://calculator.devel:8080  
+Необходимо добавить данные домены в файл hosts  
+
+Gist с описанием задачи:  
+https://gist.github.com/voodooism/af605aa024bc914598fb76f13db9762b
